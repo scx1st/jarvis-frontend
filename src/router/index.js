@@ -1,4 +1,5 @@
 //初始化路由
+
 //导入router的路由模式
 import {createRouter, createWebHistory} from 'vue-router'
 //导入进度条组件
@@ -108,7 +109,7 @@ router.beforeEach((to, from, next) => {
     if (to.meta.title) {
         document.title = to.meta.title
     } else {
-        document.title = "kubeA"
+        document.title = "jarvis"
     }
     //放行
     next()
