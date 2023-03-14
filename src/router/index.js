@@ -8,7 +8,7 @@ import 'nprogress/nprogress.css'
 import Layout from "@/layout/Layout"
 
 //定义路由规则
-const routers = [
+const routes = [
     {
         path: '/',
         redirect: '/home' //重定向
@@ -22,8 +22,8 @@ const routers = [
                 path: "/home",
                 name: "概览",
                 icon: "fund-outlined",
-                meta: {title: "概览"}
-                component: () => import('@views/home/Home.vue')
+                meta: {title: "概览"},
+                component: () => import('@/views/home/Home.vue')  
             }
         ]
     },
@@ -36,19 +36,19 @@ const routers = [
             {
                 path: "/cluster/node",
                 name: "Node",
-                meta: {title: "Node", requireAuth: true}
+                meta: {title: "Node", requireAuth: true},
                 component: () => import('@/views/cluster/Node.vue')
             },
             {
                 path: "/cluster/namespace",
                 name: "Namespace",
-                meta: {title: "Namespace", requireAuth: true}
+                meta: {title: "Namespace", requireAuth: true},
                 component: () => import('@/views/cluster/Namespace.vue')
             },
             {
                 path: "/cluster/pv",
                 name: "PV",
-                meta: {title: "PV", requireAuth: true}
+                meta: {title: "PV", requireAuth: true},
                 component: () => import('@/views/cluster/PV.vue')
             }
         ]
