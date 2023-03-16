@@ -12,7 +12,7 @@
                 <!-- 集群信息 -->
                 <a-menu
                     style="float:left; width:250px; line-height:64px;"
-                    v-model:selectedKeys="selectedKeysl"
+                    v-model:selectedKeys="selectedKeys1"
                     theme="dark"
                     mode="horizontal">
                     <a-menu-item v-for="item in clusterList" :key="item">
@@ -45,6 +45,53 @@
         <a-layout style="height:calc(100vh - 68px)">
             <!-- ***侧边栏*** -->
             <a-layout-sider width="240"  v-model:collapsed="collapsed" collapsible>
+                <!-- selectedKeys表示点击选中的栏目,用于a-menu-item -->
+                <!-- openKeys表示展开的栏目，用于a-sub-menu -->
+                <!-- openChange事件监听 SubMenu 展开/关闭的回调 -->
+                <a-menu
+                    :selectedKeys="selectedKeys2"
+                    :openKeys="openKeys"
+                    @openChange="onOpenChange"
+                    mode="inline"
+                    :style="{height:'100%', borderRight: 0}">
+                    <!-- routers是router/index.js的路由信息 -->
+                    <template v-for="menu in routers" :key="menu">
+                        <!-- 处理无子路由的情况 -->
+                        <!-- routeChange用于处理跳转和选中 -->
+                        <a-menu-item
+                            v-if="menu.children && menu.children.length == 1"
+                            :index="menu.children[0].path"
+                            :key="menu.children[0].path"
+                            @click="routeChange('item', menu.children[0].path)">
+                            <template #icon>
+                                <component :is="menu.children[0].icon" />
+                            </template>
+                            <span>{{ menu.children[0].name }}</span>
+                        </a-menu-item>
+                        <!-- 处理有子路由的情况,也就是父栏目 -->
+                        <a-sub-menu
+                            v-else-if="menu.children && menu.children.length > 1"
+                            :index="menu.path"
+                            :key="menu.path">
+                            <template #icon>
+                                <component :is="menu.icon" />
+                            </template>
+                            <template #title>
+                                <span>
+                                    <span :class="[collapsed ? 'is-collapse' : '']">{{ menu.name }}</span>
+                                </span>
+                            </template>
+                            <!-- 子栏目（子路由） -->
+                            <a-menu-item
+                                v-for="child in menu.children"
+                                :key="child.path"
+                                :index="child.path"
+                                @click="routeChange('sub', child.path)">
+                                <span>{{ child.name }}</span>
+                            </a-menu-item>
+                        </a-sub-menu>
+                    </template>
+                </a-menu>
             </a-layout-sider>
             <a-layout style="padding: 0 24px">
                 <!-- main部分 -->
@@ -68,18 +115,25 @@
 </template>
 
 <script>
-import {ref} from 'vue'
+import {ref, onMounted} from 'vue'
 import kubeLogo from '@/assets/k8s-metrics.png'
 import avator from '@/assets/avator.png'
-
+import { useRouter } from 'vue-router'
 export default ({
     setup() {
         const collapsed = ref(false)
-        const selectedKeysl = ref([])
+        const selectedKeys1 = ref([])
         const clusterList = ref([
             'TST-1',
             'TST-2'
         ])
+        //侧边栏的属性
+        //路由信息
+        const routers = ref([])
+        const selectedKeys2 = ref([])
+        const openKeys = ref([])
+        // 通过userRouter方法获取路由配置以及当前页面的路由信息
+        const router = useRouter()
 
         //【这里开始是方法】
         function logout(){
@@ -90,13 +144,51 @@ export default ({
             //跳转导login页面
             // router.push('/login')
         }
+
+        //导航栏点击切换页面，以及处理选中的情况
+        function routeChange(type, path){
+            //判断点击是否为sub栏目(也就是单独item)，如果不是，则关闭其他父栏目
+            if(type != 'sub'){
+                openKeys.value = []
+            }
+            //选中当前path对应的栏目,单独item或者子item
+            selectedKeys2.value = [path]
+            //页面跳转
+            //router.currentRoute.value.path用于获取当前的页面路径
+            if(router.currentRoute.value.path !== path){
+                router.push(path)
+            }
+        }
+        //专门用于sub的打开和关闭
+        function onOpenChange(val){
+            const latestOpenKey = val.find(key => openKeys.value.indexOf(key) == -1)
+            openKeys.value = latestOpenKey ? [latestOpenKey]:[]
+        }
+        //用于从浏览器地址直接打开后的选中
+        const getRouter = ((val) => {
+            selectedKeys2.value = [val[1].path]
+            openKeys.value = [val[0].path]
+            console.log(selectedKeys2.value)
+        })
+        //生命周期钩子
+        onMounted(() => {
+            routers.value = router.options.routes
+            //router.currentRoute.value.matched用来获取当前路由层级信息
+            getRouter(router.currentRoute.value.matched)
+        })
         return {
             collapsed,
             kubeLogo,
             avator,
-            selectedKeysl,
+            selectedKeys1,
             clusterList,
-            logout
+            routers,
+            selectedKeys2,
+            openKeys,
+            router,
+            logout,
+            routeChange,
+            onOpenChange
         }
     },
 })
