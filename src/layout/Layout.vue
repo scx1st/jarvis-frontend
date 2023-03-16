@@ -94,6 +94,12 @@
                 </a-menu>
             </a-layout-sider>
             <a-layout style="padding: 0 24px">
+                <a-breadcrumb style="margin:10px o">
+                    <a-breadcrumb-item>工作台</a-breadcrumb-item>
+                    <template v-for="(matched, index) in router.currentRoute.value.matched" :key="index">
+                        <a-breadcrumb-item v-if="matched.name">{{ matched.name }}</a-breadcrumb-item>
+                    </template>
+                </a-breadcrumb>
                 <!-- main部分 -->
                 <a-layout-content
                 :style="{
